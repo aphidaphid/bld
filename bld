@@ -14,16 +14,6 @@ else
   PROJECT_NAME=$(pwd | rev | cut -d / -f 1 | rev)
 fi
 
-# no argument supplied
-if [ -z "$@" ]; then
-  echo -e "bld :: specify one or more operations:
-  -b: build
-  -c: clean (delete ./build)
-  -g: generate quickstart project (CMakeLists.txt & src/main.cpp)
-  -r: run project binary\e[0m"
-  exit
-fi
-
 error() {
   echo -e "${COLOR_ERROR}bld :: [error] $1\e[0m"
   exit
@@ -40,6 +30,15 @@ alert_no_exit() {
 
 print_status() {
   echo -e "${COLOR_WORKING}bld :: $1\e[0m"
+}
+
+print_options()
+  echo -e "bld :: specify one or more operations:
+  -b: build
+  -c: clean (deletes ./build)
+  -g: generate quickstart project (copies from .local/share/bld)
+  -r: run project binary\e[0m"
+  exit
 }
 
 check_cmake() {
@@ -62,14 +61,23 @@ build() {
   popd
 }
 
-while getopts ":bcgr" arg; do
+# no argument supplied
+if [ -z "$@" ]; then
+  print_options
+fi
+
+while getopts ":bcghr" arg; do
   case ${arg} in
-    b|-b|--build)
+    \?)
+      alert_no_exit "invalid operation"
+      print_options
+      ;;
+    b)
       check_cmake
       print_status "building..."
       build
       ;;
-    c|-c|--clean)
+    c)
       if [ -d "./build" ]; then
         print_status "cleaning..."
         rm -rf ./build
@@ -77,7 +85,7 @@ while getopts ":bcgr" arg; do
         alert "no cleaning required"
       fi
       ;;
-    g|-g|--gen)
+    g)
       FILES=$(ls ~/.local/share/bld)
       for f in ${FILES}; do
         if [[ -f "./${f}" || -d "./${f}" ]]; then
@@ -91,7 +99,10 @@ while getopts ":bcgr" arg; do
         fi
       done
       ;;
-    r|-r|--run)
+    h)
+      print_options
+      ;;
+    r)
       if [[ ! -f "./build/${PROJECT_NAME}" ]]; then
         error "project binary does not exist\e[0m"
       else
