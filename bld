@@ -32,7 +32,7 @@ print_status() {
   echo -e "${COLOR_WORKING}bld :: $1\e[0m"
 }
 
-print_options()
+print_options() {
   echo -e "bld :: specify one or more operations:
   -b: build
   -c: clean (deletes ./build)
