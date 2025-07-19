@@ -1,15 +1,15 @@
 #!/bin/bash
 
-COLOR_ERROR="\e[1;31m"
-COLOR_SUCCESS="\e[1;32m"
-COLOR_ALERT="\e[1;33m"
-COLOR_WORKING="\e[104m\e[97m"
+readonly COLOR_ERROR="\e[1;31m"
+readonly COLOR_SUCCESS="\e[1;32m"
+readonly COLOR_ALERT="\e[1;33m"
+readonly COLOR_WORKING="\e[104m\e[97m"
 
 readonly CMAKE_VERSION=3.5
 readonly CMAKE_CXX_STANDARD=23
 
 if [[ -f "./CMakeLists.txt" ]]; then
-  PROJECT_NAME=$(grep -e project CMakeLists.txt | cut -d "(" -f2 | cut -d ")" -f1)
+  PROJECT_NAME=$(grep -e project CMakeLists.txt | cut -d "(" -f2 | cut -d ")" -f1 | cut -d " " -f1)
 else
   PROJECT_NAME=$(pwd | rev | cut -d / -f 1 | rev)
 fi
