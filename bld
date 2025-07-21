@@ -21,11 +21,6 @@ error() {
 
 alert() {
   echo -e "${COLOR_ALERT}bld :: [alert] $1\e[0m"
-  exit
-}
-
-alert_no_exit() {
-  echo -e "${COLOR_ALERT}bld :: [alert] $1\e[0m"
 }
 
 print_status() {
@@ -36,15 +31,11 @@ print_options() {
   echo -e "bld :: specify one or more operations:
   -b: build
   -c: clean (deletes ./build)
-  -g: generate quickstart project (copies from .local/share/bld)
-  -r: run project binary\e[0m"
+  -r: run project binary\e[0m
+  -t: copy default template
+  -T: {ARG}: copy specified template
+NOTE: templates are stored at ~/.local/share/bld/templates"
   exit
-}
-
-check_cmake() {
-  if [[ ! -f "./CMakeLists.txt" ]]; then
-    error "CMakeLists.txt file not found; use -g to generate a new project"
-  fi
 }
 
 build() {
@@ -61,21 +52,42 @@ build() {
   popd
 }
 
+template() {
+  DIR="~/.local/share/bld/templates/$1/"
+  if [ -d ${DIR} ]; then
+    error "template does not exist. the following templates are available:
+    \e[1;34m$(cd ~/.local/share/bld/templates; ls -d -- */; cd $OLDPWD)"
+    return
+  fi
+  for f in $(ls ~/.local/share/bld/templates/$1); do
+    if [[ -f "./${f}" || -d "./${f}" ]]; then
+      alert "${f} already exists"
+    else
+      print_status "copying $DIR$f..."
+      cp -r ~/.local/share/bld/templates/default/$f .
+      if [[ ${f} == "CMakeLists.txt" ]]; then # replace __PROJECT_NAME__ with folder name
+        sed -i -e "s/__PROJECT_NAME__/${PROJECT_NAME}/g" ${f}
+      fi
+    fi
+  done
+  echo -e "${COLOR_SUCCESS}bld :: complete\e[0m"
+}
+
 # no argument supplied
-if [ -z "$@" ]; then
+if [[ $OPTIND == 1 ]]; then
+  alert "invalid/absent operation"
   print_options
 fi
 
-while getopts ":bcghr" arg; do
+while getopts ":bchrtT:" arg; do
   case ${arg} in
-    \?)
-      alert_no_exit "invalid operation"
-      print_options
-      ;;
     b)
-      check_cmake
+      if [[ ! -f "./CMakeLists.txt" ]]; then
+        error "CMakeLists.txt file not found; use -t to insert a template from ~/.local/share/bld/templates"
+      fi
       print_status "building..."
       build
+      echo -e "${COLOR_SUCCESS}bld :: complete\e[0m"
       ;;
     c)
       if [ -d "./build" ]; then
@@ -84,20 +96,7 @@ while getopts ":bcghr" arg; do
       else
         alert "no cleaning required"
       fi
-      ;;
-    g)
-      FILES=$(ls ~/.local/share/bld)
-      for f in ${FILES}; do
-        if [[ -f "./${f}" || -d "./${f}" ]]; then
-          alert_no_exit "${f} already exists"
-        else
-          print_status "copying ${f}..."
-          cp -r ~/.local/share/bld/${f} .
-          if [[ ${f} == "CMakeLists.txt" ]]; then # replace __PROJECT_NAME__ with folder name
-            sed -i -e "s/__PROJECT_NAME__/${PROJECT_NAME}/g" ${f}
-          fi
-        fi
-      done
+      echo -e "${COLOR_SUCCESS}bld :: complete\e[0m"
       ;;
     h)
       print_options
@@ -109,8 +108,14 @@ while getopts ":bcghr" arg; do
         print_status "running..."
         ./build/${PROJECT_NAME}
       fi
+      echo -e "${COLOR_SUCCESS}bld :: complete\e[0m"
+      ;;
+    t)
+      template "default"
+      ;;
+    T)
+      template ${OPTARG}
       ;;
   esac
 done
 
-echo -e "${COLOR_SUCCESS}bld :: complete\e[0m"

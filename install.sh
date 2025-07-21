@@ -1,2 +1,6 @@
 cp ./bld ~/.local/bin
-cp -r ./starter-project/bld ~/.local/share
+
+mkdir -p ~/.local/share/bld/templates/default
+
+cp -r default-template default
+mv default ~/.local/share/bld/templates
