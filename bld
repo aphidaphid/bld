@@ -73,12 +73,6 @@ template() {
   echo -e "${COLOR_SUCCESS}bld :: complete\e[0m"
 }
 
-# no argument supplied
-if [[ $OPTIND == 1 ]]; then
-  alert "invalid/absent operation"
-  print_options
-fi
-
 while getopts ":bchrtT:" arg; do
   case ${arg} in
     b)
@@ -118,4 +112,10 @@ while getopts ":bchrtT:" arg; do
       ;;
   esac
 done
+
+# no argument supplied
+if [[ $OPTIND == 1 ]]; then
+  alert "invalid/absent operation"
+  print_options
+fi
 
