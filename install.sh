@@ -1,6 +1,7 @@
-cp ./bld ~/.local/bin
+cp ./bld /usr/local/bin
 
-mkdir -p ~/.local/share/bld/templates/default
+mkdir -p /usr/local/share/bld/templates/
 
 cp -r default-template default
-mv default ~/.local/share/bld/templates
+mv default /usr/local/share/bld/templates/
+chmod +xrw /usr/local/share/bld/templates/default/*/

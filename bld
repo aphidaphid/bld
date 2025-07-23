@@ -53,18 +53,20 @@ build() {
 }
 
 template() {
-  DIR="~/.local/share/bld/templates/$1/"
-  if [ -d ${DIR} ]; then
-    error "template does not exist. the following templates are available:
-    \e[1;34m$(cd ~/.local/share/bld/templates; ls -d -- */; cd $OLDPWD)"
-    return
+  TEMPLATE=~/.local/share/bld/templates/$1/
+  if [ ! -d ${TEMPLATE} ]; then
+    TEMPLATE=/usr/local/share/bld/templates/$1/
+    if [ ! -d ${TEMPLATE} ]; then
+      error "template does not exist. see templates at ~/.local/share/bld/templates or /usr/local/share/bld/templates/default"
+    fi
   fi
-  for f in $(ls ~/.local/share/bld/templates/$1); do
+
+  for f in $(ls ${TEMPLATE}); do
     if [[ -f "./${f}" || -d "./${f}" ]]; then
       alert "${f} already exists"
     else
-      print_status "copying $DIR$f..."
-      cp -r ~/.local/share/bld/templates/default/$f .
+      print_status "copying $TEMPLATE$f..."
+      cp -r $TEMPLATE$f .
       if [[ ${f} == "CMakeLists.txt" ]]; then # replace __PROJECT_NAME__ with folder name
         sed -i -e "s/__PROJECT_NAME__/${PROJECT_NAME}/g" ${f}
       fi
