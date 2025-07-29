@@ -1,12 +1,9 @@
-#!/bin/bash
+#!/bin/sh
 
 readonly COLOR_ERROR="\e[1;31m"
 readonly COLOR_SUCCESS="\e[1;32m"
 readonly COLOR_ALERT="\e[1;33m"
 readonly COLOR_WORKING="\e[104m\e[97m"
-
-readonly CMAKE_VERSION=3.5
-readonly CMAKE_CXX_STANDARD=23
 
 if [[ -f "./CMakeLists.txt" ]]; then
   PROJECT_NAME=$(grep -e project CMakeLists.txt | cut -d "(" -f2 | cut -d ")" -f1 | cut -d " " -f1)
@@ -43,30 +40,30 @@ build() {
     mkdir build
   fi
 
-  pushd build
+  pushd build || exit
     if [ -f "./${PROJECT_NAME}" ]; then
-      rm ./${PROJECT_NAME}
+      rm ./"${PROJECT_NAME}"
     fi
     cmake ..
     make
-  popd
+  popd || exit
 }
 
 template() {
   TEMPLATE=~/.local/share/bld/templates/$1/
-  if [ ! -d ${TEMPLATE} ]; then
+  if [ ! -d "${TEMPLATE}" ]; then
     TEMPLATE=/usr/local/share/bld/templates/$1/
-    if [ ! -d ${TEMPLATE} ]; then
+    if [ ! -d "${TEMPLATE}" ]; then
       error "template does not exist. see templates at ~/.local/share/bld/templates or /usr/local/share/bld/templates/default"
     fi
   fi
 
-  for f in $(ls ${TEMPLATE}); do
+  for f in $(ls "${TEMPLATE}"); do
     if [[ -f "./${f}" || -d "./${f}" ]]; then
       alert "${f} already exists"
     else
       print_status "copying $TEMPLATE$f..."
-      cp -r $TEMPLATE$f .
+      cp -r "$TEMPLATE""$f" .
       if [[ ${f} == "CMakeLists.txt" ]]; then # replace __PROJECT_NAME__ with folder name
         sed -i -e "s/__PROJECT_NAME__/${PROJECT_NAME}/g" ${f}
       fi
